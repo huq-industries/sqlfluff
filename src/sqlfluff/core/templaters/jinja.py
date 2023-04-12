@@ -202,6 +202,7 @@ class JinjaTemplater(PythonTemplater):
                 return self.name
 
         dbt_builtins = {
+            "set_sql_header": lambda *args, **kwargs: "",
             "ref": lambda model_ref: model_ref,
             "source": lambda source_name, table: f"{source_name}_{table}",
             "config": lambda **kwargs: "",

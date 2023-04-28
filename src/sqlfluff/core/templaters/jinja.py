@@ -462,7 +462,10 @@ class JinjaTemplater(PythonTemplater):
         )
         for val in potentially_undefined_variables:
             if val not in live_context:
-                live_context[val] = Undefined.create(val)  # type: ignore
+                if val.endswith('_tbl'):
+                    live_context[val] = 'some_tbl'
+                else:
+                    live_context[val] = Undefined.create(val)  # type: ignore
 
         try:
             # NB: Passing no context. Everything is loaded when the template is loaded.

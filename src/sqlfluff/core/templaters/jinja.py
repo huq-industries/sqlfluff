@@ -17,7 +17,6 @@ from jinja2 import (
 )
 from jinja2.environment import Template
 from jinja2.exceptions import TemplateNotFound, UndefinedError
-from jinja2.ext import Extension
 from jinja2.sandbox import SandboxedEnvironment
 
 from sqlfluff.core.config import FluffConfig
@@ -270,7 +269,9 @@ class JinjaTemplater(PythonTemplater):
             loader = FileSystemLoader(macros_path) if macros_path else None
         extensions = ["jinja2.ext.do"]
         if self._apply_dbt_builtins(config):
-            extensions.append(DBTTestExtension)
+            from dbt.clients.jinja import TestExtension, MaterializationExtension
+            extensions.append(TestExtension)
+            extensions.append(MaterializationExtension)
 
         return SandboxedEnvironment(
             keep_trailing_newline=True,
@@ -617,19 +618,3 @@ class DummyUndefined(jinja2.Undefined):
 
     def __iter__(self):
         return [self].__iter__()
-
-
-class DBTTestExtension(Extension):
-    """Jinja extension to handle the dbt test tag."""
-
-    tags = {"test"}
-
-    def parse(self, parser):
-        """Parses out the contents of the test tag."""
-        node = jinja2.nodes.Macro(lineno=next(parser.stream).lineno)
-        test_name = parser.parse_assign_target(name_only=True).name
-
-        parser.parse_signature(node)
-        node.name = f"test_{test_name}"
-        node.body = parser.parse_statements(("name:endtest",), drop_needle=True)
-        return node

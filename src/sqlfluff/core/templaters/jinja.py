@@ -329,6 +329,12 @@ class JinjaTemplater(PythonTemplater):
                         macros_path, env=env, ctx=live_context
                     )
                 )
+                # parse twice like how dbt does it, this will support macro within macro ala dbt.
+                live_context.update(
+                    self._extract_macros_from_path(
+                        macros_path, env=env, ctx=live_context
+                    )
+                )
 
             # Load config macros, these will take precedence over macros from the path
             live_context.update(
